@@ -8,34 +8,34 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { AppService } from './app.service';
+import { MovieService } from './movie.service';
 
 @Controller('movie')
-export class AppController {
-  constructor(private readonly appService: AppService) {}
+export class MovieController {
+  constructor(private readonly movieService: MovieService) {}
 
   @Get()
   getMovies(@Query('title') title?: string) {
-    return this.appService.getManyMovies(title);
+    return this.movieService.getManyMovies(title);
   }
 
   @Get(':id')
   getMovie(@Param('id') id: string) {
-    return this.appService.getMovieById(id);
+    return this.movieService.getMovieById(id);
   }
 
   @Post()
   postMovie(@Body('title') title: string) {
-    return this.appService.createMovie(title);
+    return this.movieService.createMovie(title);
   }
 
   @Patch(':id')
   patchMovie(@Body('title') title: string, @Param('id') id: string) {
-    return this.appService.updateMovie(id, title);
+    return this.movieService.updateMovie(id, title);
   }
 
   @Delete(':id')
   deleteMovie(@Param('id') id: string) {
-    return this.appService.deleteMovie(id);
+    return this.movieService.deleteMovie(id);
   }
 }
