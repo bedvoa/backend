@@ -16,6 +16,7 @@ export class MovieService {
   ];
   private idCounter = 3;
 
+  // 모든 영화 목록을 반환하는 메서드
   getManyMovies(title?: string) {
     if (!title) {
       return this.movies;
@@ -24,6 +25,7 @@ export class MovieService {
     return this.movies.filter((movie) => movie.title.startsWith(title));
   }
 
+  // 특정 ID 값을 가진 영화를 반환하는 메서드
   getMovieById(id: string) {
     const movie = this.movies.find((movie) => movie.id === +id);
 
@@ -34,6 +36,7 @@ export class MovieService {
     return movie;
   }
 
+  // 새로운 영화를 생성하는 메서드
   createMovie(createMovieDto: CreateMovieDto) {
     const newMovie = {
       id: this.idCounter,
@@ -46,6 +49,7 @@ export class MovieService {
     return newMovie;
   }
 
+  // 특정 ID 값을 가진 영화를 수정하는 메서드
   updateMovie(id: string, updateMovieDto: UpdateMovideDto) {
     const movie = this.movies.find((movie) => movie.id === +id);
 
@@ -58,6 +62,7 @@ export class MovieService {
     return movie;
   }
 
+  // 특정 ID 값을 가진 영화를 삭제하는 메서드
   deleteMovie(id: string) {
     const movieIndex = this.movies.findIndex((movie) => movie.id === +id);
 
