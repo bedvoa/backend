@@ -1,8 +1,41 @@
 import { Module } from '@nestjs/common';
 import { MovieModule } from './movie/movie.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import * as joi from 'joi';
+import { EnvVariables } from './constants/env-variables';
 
 @Module({
-  imports: [MovieModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: joi.object({
+        ENV: joi.string().valid('dev', 'prod').default('dev'),
+        DB_TYPE: joi.string().valid('postgres').required(),
+        DB_HOST: joi.string().required(),
+        DB_PORT: joi.number().required(),
+        DB_USERNAME: joi.string().required(),
+        DB_PASSWORD: joi.string().required(),
+        DB_DATABASE: joi.string().required(),
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        type: configService.get<string>(
+          EnvVariables.DB_TYPE,
+        ) as EnvVariables.KIND_OF_DB,
+        host: configService.get<string>(EnvVariables.DB_HOST),
+        port: configService.get<number>(EnvVariables.DB_PORT),
+        username: configService.get<string>(EnvVariables.DB_USERNAME),
+        password: configService.get<string>(EnvVariables.DB_PASSWORD),
+        database: configService.get<string>(EnvVariables.DB_DATABASE),
+        entities: [],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
+    }),
+    MovieModule,
+  ],
   controllers: [],
   providers: [],
 })
