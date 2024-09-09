@@ -1,9 +1,10 @@
+import * as joi from 'joi';
 import { Module } from '@nestjs/common';
 import { MovieModule } from './movie/movie.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as joi from 'joi';
 import { EnvVariables } from './constants/env-variables';
+import { Movie } from './movie/entity/movie.entity';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { EnvVariables } from './constants/env-variables';
         username: configService.get<string>(EnvVariables.DB_USERNAME),
         password: configService.get<string>(EnvVariables.DB_PASSWORD),
         database: configService.get<string>(EnvVariables.DB_DATABASE),
-        entities: [],
+        entities: [Movie],
         synchronize: true,
       }),
       inject: [ConfigService],
