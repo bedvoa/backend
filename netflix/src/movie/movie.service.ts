@@ -3,7 +3,7 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovideDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 
 @Injectable()
 export class MovieService {
@@ -14,7 +14,14 @@ export class MovieService {
 
   // 모든 영화 목록을 반환하는 메서드
   async getManyMovies(title?: string) {
-    return await this.movieRepository.find();
+    if (!title) {
+      return await this.movieRepository.find();
+    }
+    return await this.movieRepository.find({
+      where: {
+        title: Like(`%${title}%`),
+      },
+    });
   }
 
   // 특정 ID 값을 가진 영화를 반환하는 메서드
