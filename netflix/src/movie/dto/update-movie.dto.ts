@@ -23,4 +23,8 @@ export class UpdateMovideDto {
   @IsNotEmpty()
   @IsOptional()
   detail?: string;
+
+  @IsNotEmpty()
+  @IsOptional()
+  directorId?: number;
 }

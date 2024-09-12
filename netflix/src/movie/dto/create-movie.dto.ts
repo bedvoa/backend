@@ -23,4 +23,9 @@ export class CreateMovieDto {
     message: '상세 정보는 필수 입력 값입니다.',
   })
   detail: string;
+
+  @IsNotEmpty({
+    message: '감독 ID는 필수 입력 값입니다.',
+  })
+  directorId: number;
 }
