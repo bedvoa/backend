@@ -3,9 +3,10 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovideDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { In, Like, Repository } from 'typeorm';
 import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from 'src/director/entity/director.entity';
+import { Genre } from 'src/genre/entities/genre.entity';
 
 @Injectable()
 export class MovieService {
@@ -16,20 +17,22 @@ export class MovieService {
     private readonly movieDetailRepository: Repository<MovieDetail>,
     @InjectRepository(Director)
     private readonly directorRepository: Repository<Director>,
+    @InjectRepository(Genre)
+    private readonly genreRepository: Repository<Genre>,
   ) {}
 
   // 모든 영화 목록을 반환하는 메서드
   async findAll(title?: string) {
     if (!title) {
       return await this.movieRepository.find({
-        relations: ['director'],
+        relations: ['director', 'detail', 'genres'],
       });
     }
     return await this.movieRepository.find({
       where: {
         title: Like(`%${title}%`),
       },
-      relations: ['director'],
+      relations: ['director', 'detail', 'genres'],
     });
   }
 
@@ -37,7 +40,7 @@ export class MovieService {
   async findOne(id: number) {
     const movie = await this.movieRepository.findOne({
       where: { id },
-      relations: ['detail', 'director'],
+      relations: ['detail', 'director', 'genres'],
     });
 
     if (!movie) {
@@ -53,13 +56,29 @@ export class MovieService {
       where: { id: createMovieDto.directorId },
     });
 
+    if (!director) {
+      throw new NotFoundException('존재하지 않는 ID 값의 감독입니다.');
+    }
+
+    const genres = await this.genreRepository.find({
+      where: { id: In(createMovieDto.genreIds) },
+    });
+
+    if (genres.length !== createMovieDto.genreIds.length) {
+      throw new NotFoundException(
+        `존재하지 않는 ID 값의 장르가 포함되어 있습니다. ids -> ${genres
+          .map((genre) => genre.id)
+          .join(', ')}`,
+      );
+    }
+
     const movie = await this.movieRepository.save({
       title: createMovieDto.title,
-      genre: createMovieDto.genre,
       detail: {
         detail: createMovieDto.detail,
       },
       director,
+      genres,
     });
 
     return movie;
@@ -76,7 +95,7 @@ export class MovieService {
       throw new NotFoundException('존재하지 않는 ID 값의 영화입니다.');
     }
 
-    const { detail, directorId, ...movieRest } = updateMovieDto;
+    const { detail, directorId, genreIds, ...movieRest } = updateMovieDto;
 
     let newDirector;
 
@@ -90,6 +109,23 @@ export class MovieService {
       }
 
       newDirector = director;
+    }
+
+    let newGenres;
+    if (genreIds) {
+      const genres = await this.genreRepository.find({
+        where: { id: In(genreIds) },
+      });
+
+      if (genres.length !== updateMovieDto.genreIds.length) {
+        throw new NotFoundException(
+          `존재하지 않는 ID 값의 장르가 포함되어 있습니다. ids -> ${genres
+            .map((genre) => genre.id)
+            .join(', ')}`,
+        );
+      }
+
+      newGenres = genres;
     }
 
     const movieUpdateFields = {
@@ -111,7 +147,14 @@ export class MovieService {
       relations: ['detail', 'director'],
     });
 
-    return newMovie;
+    newMovie.genres = newGenres;
+
+    await this.movieRepository.save(newMovie);
+
+    return await this.movieRepository.findOne({
+      where: { id },
+      relations: ['detail', 'director', 'genres'],
+    });
   }
 
   // 특정 ID 값을 가진 영화를 삭제하는 메서드

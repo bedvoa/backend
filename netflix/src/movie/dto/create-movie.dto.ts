@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateMovieDto {
   @IsString()
@@ -10,15 +17,6 @@ export class CreateMovieDto {
   })
   title: string;
 
-  @IsString()
-  @IsNotEmpty({
-    message: '장르는 필수 입력 값입니다.',
-  })
-  @MinLength(1, {
-    message: '장르는 최소 1글자 이상이어야 합니다.',
-  })
-  genre: string;
-
   @IsNotEmpty({
     message: '상세 정보는 필수 입력 값입니다.',
   })
@@ -28,4 +26,17 @@ export class CreateMovieDto {
     message: '감독 ID는 필수 입력 값입니다.',
   })
   directorId: number;
+
+  @IsArray()
+  @ArrayNotEmpty({
+    message: '장르 ID는 필수 입력 값입니다.',
+  })
+  @IsNumber(
+    {},
+    {
+      each: true,
+      message: '장르 ID는 숫자여야 합니다.',
+    },
+  )
+  genreIds: number[];
 }
