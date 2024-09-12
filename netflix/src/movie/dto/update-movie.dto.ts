@@ -19,4 +19,8 @@ export class UpdateMovideDto {
   @IsNotEmpty()
   @IsOptional()
   genre?: string;
+
+  @IsNotEmpty()
+  @IsOptional()
+  detail?: string;
 }

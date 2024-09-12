@@ -4,12 +4,15 @@ import { UpdateMovideDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
+import { MovieDetail } from './entity/movie-detail.entity';
 
 @Injectable()
 export class MovieService {
   constructor(
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
+    @InjectRepository(MovieDetail)
+    private readonly movieDetailRepository: Repository<MovieDetail>,
   ) {}
 
   // 모든 영화 목록을 반환하는 메서드
@@ -26,13 +29,26 @@ export class MovieService {
 
   // 특정 ID 값을 가진 영화를 반환하는 메서드
   async getMovieById(id: number) {
-    return await this.movieRepository.findOne({ where: { id } });
+    const movie = await this.movieRepository.findOne({
+      where: { id },
+      relations: ['detail'],
+    });
+
+    if (!movie) {
+      throw new NotFoundException('존재하지 않는 ID 값의 영화입니다.');
+    }
+
+    return movie;
   }
 
   // 새로운 영화를 생성하는 메서드
   async createMovie(createMovieDto: CreateMovieDto) {
     const movie = await this.movieRepository.save({
-      ...createMovieDto,
+      title: createMovieDto.title,
+      genre: createMovieDto.genre,
+      detail: {
+        detail: createMovieDto.detail,
+      },
     });
 
     return movie;
@@ -40,27 +56,47 @@ export class MovieService {
 
   // 특정 ID 값을 가진 영화를 수정하는 메서드
   async updateMovie(id: number, updateMovieDto: UpdateMovideDto) {
-    const movie = await this.movieRepository.findOne({ where: { id } });
+    const movie = await this.movieRepository.findOne({
+      where: { id },
+      relations: ['detail'],
+    });
 
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID 값의 영화입니다.');
     }
 
-    await this.movieRepository.update({ id }, { ...updateMovieDto });
+    const { detail, ...movieRest } = updateMovieDto;
+    await this.movieRepository.update({ id }, movieRest);
 
-    const newMovie = await this.movieRepository.findOne({ where: { id } });
+    if (detail) {
+      await this.movieDetailRepository.update(
+        { id: movie.detail.id },
+        { detail },
+      );
+    }
+
+    const newMovie = await this.movieRepository.findOne({
+      where: { id },
+      relations: ['detail'],
+    });
 
     return newMovie;
   }
 
   // 특정 ID 값을 가진 영화를 삭제하는 메서드
   async deleteMovie(id: number) {
-    const movie = await this.movieRepository.findOne({ where: { id } });
+    const movie = await this.movieRepository.findOne({
+      where: { id },
+      relations: ['detail'],
+    });
 
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID 값의 영화입니다.');
     }
 
-    return await this.movieRepository.delete({ id });
+    await this.movieRepository.delete({ id });
+    await this.movieDetailRepository.delete({ id: movie.detail.id });
+
+    return { id };
   }
 }

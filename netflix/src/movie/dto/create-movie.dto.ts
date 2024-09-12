@@ -18,4 +18,9 @@ export class CreateMovieDto {
     message: '장르는 최소 1글자 이상이어야 합니다.',
   })
   genre: string;
+
+  @IsNotEmpty({
+    message: '상세 정보는 필수 입력 값입니다.',
+  })
+  detail: string;
 }

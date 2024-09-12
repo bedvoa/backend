@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EnvVariables } from './constants/env-variables';
 import { Movie } from './movie/entity/movie.entity';
+import { MovieDetail } from './movie/entity/movie-detail.entity';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { Movie } from './movie/entity/movie.entity';
         username: configService.get<string>(EnvVariables.DB_USERNAME),
         password: configService.get<string>(EnvVariables.DB_PASSWORD),
         database: configService.get<string>(EnvVariables.DB_DATABASE),
-        entities: [Movie],
+        entities: [Movie, MovieDetail],
         synchronize: true,
       }),
       inject: [ConfigService],

@@ -1,37 +1,27 @@
-// import { Exclude, Expose, Transform } from 'class-transformer';
-
+import { BaseTable } from './base-table.entity';
+import { MovieDetail } from './movie-detail.entity';
 import {
   Column,
-  CreateDateColumn,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  VersionColumn,
 } from 'typeorm';
 
-export class BaseEntity {
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @VersionColumn()
-  version: number;
-}
-
-// @Exclude() // 해당 클래스의 모든 속성을 숨기는 옵션
 @Entity()
-export class Movie extends BaseEntity {
+export class Movie extends BaseTable {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   title: string;
 
-  // @Expose() // 해당 클래스의 모든 속성을 숨기는 옵션이 설정되어 있을 때 해당 속성을 노출하는 옵션
-  // @Exclude() // 해당 속성을 숨기는 옵션
-  // @Transform(({ value }) => value.toString().toUpperCase()) // 해당 속성의 값을 대문자로 변환하는 옵션
   @Column()
   genre: string;
+
+  @OneToOne(() => MovieDetail, (movieDetail) => movieDetail.id, {
+    cascade: true,
+  })
+  @JoinColumn()
+  detail: MovieDetail;
 }
