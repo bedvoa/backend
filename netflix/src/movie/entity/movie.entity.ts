@@ -22,7 +22,7 @@ export class BaseEntity {
 
 // @Exclude() // 해당 클래스의 모든 속성을 숨기는 옵션
 @Entity()
-export class Movie {
+export class Movie extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
