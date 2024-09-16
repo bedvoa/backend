@@ -13,7 +13,7 @@ enum MovieEnum {
   Action = '액션',
 }
 
-export class UpdateMovideDto {
+export class UpdateMovieDto {
   // IsNotEmpty와 IsOptional을 같이 사용하게 되면
   // 해당 값이 없을 경우에는 유효성 검사를 진행하지 않고
   // 해당 값이 있을 경우에만 IsString을 통해 유효성 검사를 진행
