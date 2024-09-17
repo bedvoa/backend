@@ -26,6 +26,7 @@ import { User } from './user/entity/user.entity';
         DB_USERNAME: joi.string().required(),
         DB_PASSWORD: joi.string().required(),
         DB_DATABASE: joi.string().required(),
+        HASH_ROUNDS: joi.number().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
