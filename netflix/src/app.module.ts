@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { MovieModule } from './movie/movie.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EnvVariables } from './constants/env-variables';
 import { Movie } from './movie/entity/movie.entity';
 import { MovieDetail } from './movie/entity/movie-detail.entity';
 import { DirectorModule } from './director/director.module';
@@ -13,6 +12,7 @@ import { Genre } from './genre/entities/genre.entity';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entity/user.entity';
+import { EnvVariableKeys } from './common/const/env.const';
 
 @Module({
   imports: [
@@ -33,14 +33,12 @@ import { User } from './user/entity/user.entity';
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
-        type: configService.get<string>(
-          EnvVariables.DB_TYPE,
-        ) as EnvVariables.KIND_OF_DB,
-        host: configService.get<string>(EnvVariables.DB_HOST),
-        port: configService.get<number>(EnvVariables.DB_PORT),
-        username: configService.get<string>(EnvVariables.DB_USERNAME),
-        password: configService.get<string>(EnvVariables.DB_PASSWORD),
-        database: configService.get<string>(EnvVariables.DB_DATABASE),
+        type: configService.get<string>(EnvVariableKeys.dbType) as 'postgres',
+        host: configService.get<string>(EnvVariableKeys.dbHost),
+        port: configService.get<number>(EnvVariableKeys.dbPort),
+        username: configService.get<string>(EnvVariableKeys.dbUsername),
+        password: configService.get<string>(EnvVariableKeys.dbPassword),
+        database: configService.get<string>(EnvVariableKeys.dbDatabase),
         entities: [Movie, MovieDetail, Director, Genre, User],
         synchronize: true,
       }),
