@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/user/entity/user.entity';
+import { Role, User } from 'src/user/entity/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 
@@ -21,7 +21,11 @@ export class AuthService {
       throw new BadRequestException('토큰 포맷이 잘못됐습니다.');
     }
 
-    const [_, token] = basicSplit;
+    const [basic, token] = basicSplit;
+    if (basic.toLowerCase() !== 'basic') {
+      throw new BadRequestException('토큰 포맷이 잘못됐습니다.');
+    }
+
     const decoded = Buffer.from(token, 'base64').toString('utf-8');
 
     const tokenSplit = decoded.split(':');
@@ -34,6 +38,33 @@ export class AuthService {
       email,
       password,
     };
+  }
+
+  async parseBearerToken(rawToken: string, isRefreshToken: boolean) {
+    const basicSplit = rawToken.split(' ');
+
+    if (basicSplit.length !== 2) {
+      throw new BadRequestException('토큰 포맷이 잘못됐습니다.');
+    }
+
+    const [bearer, token] = basicSplit;
+    if (bearer.toLowerCase() !== 'bearer') {
+      throw new BadRequestException('토큰 포맷이 잘못됐습니다.');
+    }
+
+    const payload = await this.jwtService.verifyAsync(token, {
+      secret: this.configService.get<string>('ACCESS_TOKEN_SECRET'),
+    });
+
+    if (isRefreshToken && payload.type !== 'refresh') {
+      throw new BadRequestException('Refresh 토큰을 입력해주세요.');
+    }
+
+    if (!isRefreshToken && payload.type !== 'access') {
+      throw new BadRequestException('Access 토큰을 입력해주세요.');
+    }
+
+    return payload;
   }
 
   async register(token: string) {
@@ -84,7 +115,7 @@ export class AuthService {
     return user;
   }
 
-  async issueToken(user: User, isRefreshToken: boolean) {
+  async issueToken(user: { id: number; role: Role }, isRefreshToken: boolean) {
     const refreshTokenSecret = this.configService.get<string>(
       'REFRESH_TOKEN_SECRET',
     );
