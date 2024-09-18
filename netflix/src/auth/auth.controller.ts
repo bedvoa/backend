@@ -14,19 +14,21 @@ import { JwtAuthGuard } from './strategy/jwt.strategy';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // basic token
   @Post('register')
   async registerUser(@Headers('authorization') token: string) {
     return await this.authService.register(token);
   }
 
+  // basic token
   @Post('login')
   loginUser(@Headers('authorization') token: string) {
     return this.authService.login(token);
   }
 
   @Post('token/access')
-  async rotateAccessToken(@Headers('authorization') token: string) {
-    const payload = await this.authService.parseBearerToken(token, true);
+  async rotateAccessToken(@Request() req: any) {
+    const payload = await this.authService.parseBearerToken(req.user, true);
     return {
       accessToken: await this.authService.issueToken(payload, false),
     };
