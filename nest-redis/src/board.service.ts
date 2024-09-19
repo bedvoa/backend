@@ -14,6 +14,7 @@ export class BoardService {
 
   async getBoards(page: number, size: number): Promise<Board[]> {
     /// Cache Aside Pattern
+    // redis에 캐싱이 되어 있으면 캐싱값 반환
     const cacheKey = `boards:page:${page}:size:${size}`;
     const cachedData = await this.cacheManager.get<Board[]>(cacheKey);
 
@@ -29,6 +30,7 @@ export class BoardService {
     });
 
     /// Write Around Cache Pattern
+    // redis에 캐싱이 안되어 있으면 새로 캐싱
     await this.cacheManager.set(cacheKey, boards);
 
     return boards;
