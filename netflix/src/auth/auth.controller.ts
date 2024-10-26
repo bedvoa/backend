@@ -17,14 +17,14 @@ export class AuthController {
 
   // basic token
   @Public(true)
-  @Post('register')
+  @Post('register') // 회원가입
   async registerUser(@Headers('authorization') token: string) {
     return await this.authService.register(token);
   }
 
   // basic token
   @Public(true)
-  @Post('login')
+  @Post('login') // 로그인
   loginUser(@Headers('authorization') token: string) {
     return this.authService.login(token);
   }

@@ -13,6 +13,14 @@ export class AuthGuard implements CanActivate {
     }
 
     // 요청에서 user 객체가 존재하는지 확인
+    // Guard는 Middleware 다음에 실행되기 때문에 BearerTokenMiddleware에서 user 객체를 받아옴
+    /**
+     * sub: user id
+     * role: user role
+     * type: token type (access or refresh)
+     * iat: issued at
+     * exp: expiration time
+     */
     const request = context.switchToHttp().getRequest();
 
     if (!request.user || request.user.type !== 'access') {
