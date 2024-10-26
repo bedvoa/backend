@@ -9,18 +9,21 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './strategy/local.strategy';
 import { JwtAuthGuard } from './strategy/jwt.strategy';
+import { Public } from './decorator/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // basic token
+  @Public(true)
   @Post('register')
   async registerUser(@Headers('authorization') token: string) {
     return await this.authService.register(token);
   }
 
   // basic token
+  @Public(true)
   @Post('login')
   loginUser(@Headers('authorization') token: string) {
     return this.authService.login(token);
