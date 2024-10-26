@@ -19,6 +19,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  /** methods */
   parseBasicToken(rawToken: string) {
     const basicSplit = rawToken.split(' ');
 
@@ -78,6 +79,27 @@ export class AuthService {
     }
   }
 
+  async authenticate(email: string, password: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('잘못된 로그인 정보입니다.');
+    }
+
+    const passOk = await bcrypt.compare(password, user.password);
+
+    if (!passOk) {
+      throw new BadRequestException('잘못된 로그인 정보입니다.');
+    }
+
+    return user;
+  }
+
+  /** APIs */
   async register(token: string) {
     const { email, password } = this.parseBasicToken(token);
     const user = await this.userRepository.findOne({
@@ -106,24 +128,14 @@ export class AuthService {
     });
   }
 
-  async authenticate(email: string, password: string) {
-    const user = await this.userRepository.findOne({
-      where: {
-        email,
-      },
-    });
+  async login(token: string) {
+    const { email, password } = this.parseBasicToken(token);
+    const user = await this.authenticate(email, password);
 
-    if (!user) {
-      throw new BadRequestException('잘못된 로그인 정보입니다.');
-    }
-
-    const passOk = await bcrypt.compare(password, user.password);
-
-    if (!passOk) {
-      throw new BadRequestException('잘못된 로그인 정보입니다.');
-    }
-
-    return user;
+    return {
+      refreshToken: await this.issueToken(user, true),
+      accessToken: await this.issueToken(user, false),
+    };
   }
 
   async issueToken(user: { id: number; role: Role }, isRefreshToken: boolean) {
@@ -144,15 +156,5 @@ export class AuthService {
         expiresIn: isRefreshToken ? '24h' : 300,
       },
     );
-  }
-
-  async login(token: string) {
-    const { email, password } = this.parseBasicToken(token);
-    const user = await this.authenticate(email, password);
-
-    return {
-      refreshToken: await this.issueToken(user, true),
-      accessToken: await this.issueToken(user, false),
-    };
   }
 }
