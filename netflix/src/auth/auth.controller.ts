@@ -1,54 +1,33 @@
-import {
-  Controller,
-  Get,
-  Headers,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Headers, Post, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './strategy/local.strategy';
-import { JwtAuthGuard } from './strategy/jwt.strategy';
 import { Public } from './decorator/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // basic token
+  // 회원가입
   @Public(true)
-  @Post('register') // 회원가입
+  @Post('register')
   async registerUser(@Headers('authorization') token: string) {
+    // basic token
     return await this.authService.register(token);
   }
 
-  // basic token
+  // 로그인
   @Public(true)
-  @Post('login') // 로그인
+  @Post('login')
   loginUser(@Headers('authorization') token: string) {
+    // basic token
     return this.authService.login(token);
   }
 
+  // access token 재발급
   @Post('token/access')
   async rotateAccessToken(@Request() req: any) {
     const payload = await this.authService.parseBearerToken(req.user, true);
     return {
       accessToken: await this.authService.issueToken(payload, false),
     };
-  }
-
-  @Post('login/passport')
-  @UseGuards(LocalAuthGuard)
-  async loginUserPassport(@Request() req) {
-    return {
-      refreshToken: await this.authService.issueToken(req.user, true),
-      accessToken: await this.authService.issueToken(req.user, false),
-    };
-  }
-
-  @Get('private')
-  @UseGuards(JwtAuthGuard)
-  async private(@Request() req) {
-    return req.user;
   }
 }
