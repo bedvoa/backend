@@ -55,13 +55,13 @@ export class MovieService {
 
   // 새로운 영화를 생성하는 메서드
   async create(createMovieDto: CreateMovieDto) {
-    const qr = this.dataSource.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    await qr.connect();
-    await qr.startTransaction();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
-      const director = await qr.manager.findOne(Director, {
+      const director = await queryRunner.manager.findOne(Director, {
         where: { id: createMovieDto.directorId },
       });
 
@@ -69,7 +69,7 @@ export class MovieService {
         throw new NotFoundException('존재하지 않는 ID 값의 감독입니다.');
       }
 
-      const genres = await qr.manager.find(Genre, {
+      const genres = await queryRunner.manager.find(Genre, {
         where: { id: In(createMovieDto.genreIds) },
       });
 
@@ -81,7 +81,7 @@ export class MovieService {
         );
       }
 
-      const movieDetail = await qr.manager
+      const movieDetail = await queryRunner.manager
         .createQueryBuilder()
         .insert()
         .into(MovieDetail)
@@ -92,7 +92,7 @@ export class MovieService {
 
       const movieDetailId = movieDetail.identifiers[0].id; // 생성한 값의 id를 가져옴
 
-      const movie = await qr.manager
+      const movie = await queryRunner.manager
         .createQueryBuilder()
         .insert()
         .into(Movie)
@@ -107,13 +107,13 @@ export class MovieService {
 
       const movieId = movie.identifiers[0].id;
 
-      await qr.manager
+      await queryRunner.manager
         .createQueryBuilder()
         .relation(Movie, 'genres')
         .of(movieId)
         .add(genres.map((genre) => genre.id));
 
-      await qr.commitTransaction();
+      await queryRunner.commitTransaction();
 
       const newMovie = await this.movieRepository.findOne({
         where: { id: movieId },
@@ -121,22 +121,22 @@ export class MovieService {
       });
       return newMovie;
     } catch (error) {
-      await qr.rollbackTransaction();
+      await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      await qr.release();
+      await queryRunner.release();
     }
   }
 
   // 특정 ID 값을 가진 영화를 수정하는 메서드
   async update(id: number, updateMovieDto: UpdateMovieDto) {
-    const qr = this.dataSource.createQueryRunner();
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    await qr.connect();
-    await qr.startTransaction();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
-      const movie = await qr.manager.findOne(Movie, {
+      const movie = await queryRunner.manager.findOne(Movie, {
         where: { id },
         relations: ['detail', 'genres'],
       });
@@ -150,7 +150,7 @@ export class MovieService {
       let newDirector;
 
       if (directorId) {
-        const director = await qr.manager.findOne(Director, {
+        const director = await queryRunner.manager.findOne(Director, {
           where: { id: directorId },
         });
 
@@ -163,7 +163,7 @@ export class MovieService {
 
       let newGenres;
       if (genreIds) {
-        const genres = await qr.manager.find(Genre, {
+        const genres = await queryRunner.manager.find(Genre, {
           where: { id: In(genreIds) },
         });
 
@@ -183,7 +183,7 @@ export class MovieService {
         ...(newDirector && { director: newDirector }),
       };
 
-      await qr.manager
+      await queryRunner.manager
         .createQueryBuilder()
         .update(Movie)
         .set(movieUpdateFields)
@@ -191,7 +191,7 @@ export class MovieService {
         .execute();
 
       if (detail) {
-        await qr.manager
+        await queryRunner.manager
           .createQueryBuilder()
           .update(MovieDetail)
           .set({ detail })
@@ -200,7 +200,7 @@ export class MovieService {
       }
 
       if (newGenres) {
-        await qr.manager
+        await queryRunner.manager
           .createQueryBuilder()
           .relation(Movie, 'genres')
           .of(id)
@@ -210,16 +210,16 @@ export class MovieService {
           );
       }
 
-      await qr.commitTransaction();
+      await queryRunner.commitTransaction();
       return await this.movieRepository.findOne({
         where: { id },
         relations: ['detail', 'director', 'genres'],
       });
     } catch (error) {
-      await qr.rollbackTransaction();
+      await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      await qr.release();
+      await queryRunner.release();
     }
   }
 

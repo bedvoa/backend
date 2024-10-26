@@ -68,7 +68,7 @@ import { RBACGuard } from './auth/guard/rbac.guard';
     },
     {
       provide: APP_GUARD,
-      useValue: RBACGuard, // AuthGuard 다음에 실행
+      useClass: RBACGuard, // AuthGuard 다음에 실행
     },
   ],
 })

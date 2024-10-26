@@ -45,7 +45,6 @@ export class MovieController {
   // 새로운 영화를 생성하는 API
   @Post()
   @RBAC(Role.admin)
-  @UseGuards(AuthGuard)
   postMovie(@Body() body: CreateMovieDto) {
     return this.movieService.create(body);
   }
